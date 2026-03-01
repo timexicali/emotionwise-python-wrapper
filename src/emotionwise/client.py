@@ -68,37 +68,60 @@ class EmotionwiseClient:
         except ValueError:
             return response.text
 
-    def analyze(
+    def detect_emotion(
         self,
         *,
-        text: str,
-        language: str = "en",
-        include_sarcasm: bool = True,
-        endpoint: str = "/v1/analyze",
+        message: str,
+        context: str | None = None,
+        endpoint: str = "/api/v1/tools/emotion-detector",
         extra: dict[str, Any] | None = None,
     ) -> Any:
-        payload: dict[str, Any] = {
-            "text": text,
-            "language": language,
-            "include_sarcasm": include_sarcasm,
-        }
+        if len(message) < 1 or len(message) > 1000:
+            raise ValueError("message length must be between 1 and 1000 characters.")
+
+        payload: dict[str, Any] = {"message": message}
+        if context is not None:
+            payload["context"] = context
         if extra:
             payload.update(extra)
         return self.request("POST", endpoint, json=payload)
 
+    def analyze(
+        self,
+        *,
+        text: str,
+        context: str | None = None,
+        endpoint: str = "/api/v1/tools/emotion-detector",
+        extra: dict[str, Any] | None = None,
+    ) -> Any:
+        return self.detect_emotion(
+            message=text,
+            context=context,
+            endpoint=endpoint,
+            extra=extra,
+        )
+
     def submit_feedback(
         self,
         *,
-        prediction_id: str,
-        vote: str,
+        text: str,
+        predicted_emotions: list[str],
+        suggested_emotions: list[str] | None = None,
+        predicted_sarcasm: bool | None = None,
+        sarcasm_feedback: bool | None = None,
         comment: str | None = None,
-        endpoint: str = "/v1/feedback",
+        language_code: str = "en",
+        endpoint: str = "/api/v1/feedback/submit",
     ) -> Any:
         payload: dict[str, Any] = {
-            "prediction_id": prediction_id,
-            "vote": vote,
+            "text": text,
+            "predicted_emotions": predicted_emotions,
+            "suggested_emotions": suggested_emotions or [],
+            "predicted_sarcasm": predicted_sarcasm,
+            "sarcasm_feedback": sarcasm_feedback,
+            "language_code": language_code,
         }
-        if comment:
+        if comment is not None:
             payload["comment"] = comment
         return self.request("POST", endpoint, json=payload)
 
