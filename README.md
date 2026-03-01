@@ -2,6 +2,12 @@
 
 Python wrapper for the `emotionwise.ai` API using `X-API-Key` authentication.
 
+## Getting an API Key
+
+1. Go to [emotionwise.ai](https://emotionwise.ai) and create an account.
+2. Subscribe to a plan.
+3. Generate an API key from your dashboard.
+
 ## Install
 
 ```bash
