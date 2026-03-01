@@ -16,7 +16,7 @@ class EmotionwiseClient:
         timeout: float = 15.0,
         client: httpx.Client | None = None,
     ) -> None:
-        if not api_key:
+        if not api_key or not api_key.strip():
             raise EmotionwiseAuthError("api_key is required.")
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
@@ -24,9 +24,11 @@ class EmotionwiseClient:
         self._owns_client = client is None
 
     def _build_headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
-        final_headers = {"Accept": "application/json", "X-API-Key": self.api_key}
+        final_headers: dict[str, str] = {}
         if headers:
             final_headers.update(headers)
+        final_headers["Accept"] = "application/json"
+        final_headers["X-API-Key"] = self.api_key
         return final_headers
 
     def request(
@@ -79,27 +81,18 @@ class EmotionwiseClient:
         if len(message) < 1 or len(message) > 1000:
             raise ValueError("message length must be between 1 and 1000 characters.")
 
+        reserved = {"message", "context"}
         payload: dict[str, Any] = {"message": message}
         if context is not None:
             payload["context"] = context
         if extra:
+            conflicts = reserved & extra.keys()
+            if conflicts:
+                raise ValueError(
+                    f"extra must not override reserved keys: {sorted(conflicts)}"
+                )
             payload.update(extra)
         return self.request("POST", endpoint, json=payload)
-
-    def analyze(
-        self,
-        *,
-        text: str,
-        context: str | None = None,
-        endpoint: str = "/api/v1/tools/emotion-detector",
-        extra: dict[str, Any] | None = None,
-    ) -> Any:
-        return self.detect_emotion(
-            message=text,
-            context=context,
-            endpoint=endpoint,
-            extra=extra,
-        )
 
     def submit_feedback(
         self,
@@ -116,11 +109,14 @@ class EmotionwiseClient:
         payload: dict[str, Any] = {
             "text": text,
             "predicted_emotions": predicted_emotions,
-            "suggested_emotions": suggested_emotions or [],
-            "predicted_sarcasm": predicted_sarcasm,
-            "sarcasm_feedback": sarcasm_feedback,
             "language_code": language_code,
         }
+        if suggested_emotions is not None:
+            payload["suggested_emotions"] = suggested_emotions
+        if predicted_sarcasm is not None:
+            payload["predicted_sarcasm"] = predicted_sarcasm
+        if sarcasm_feedback is not None:
+            payload["sarcasm_feedback"] = sarcasm_feedback
         if comment is not None:
             payload["comment"] = comment
         return self.request("POST", endpoint, json=payload)

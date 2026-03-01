@@ -13,14 +13,12 @@ pip install -e .
 ```python
 from emotionwise import EmotionwiseClient
 
-client = EmotionwiseClient(api_key="YOUR_API_KEY")
-
-result = client.detect_emotion(
-    message="I am happy but a bit nervous",
-    context="daily journal",
-)
-print(result)
-client.close()
+with EmotionwiseClient(api_key="YOUR_API_KEY") as client:
+    result = client.detect_emotion(
+        message="I am happy but a bit nervous",
+        context="daily journal",
+    )
+    print(result)
 ```
 
 ## Detector Endpoint
@@ -41,18 +39,16 @@ Example:
 ```python
 from emotionwise import EmotionwiseClient
 
-client = EmotionwiseClient(api_key="YOUR_API_KEY")
-feedback = client.submit_feedback(
-    text="I am happy but a bit nervous",
-    predicted_emotions=["joy", "nervousness"],
-    suggested_emotions=["optimism"],
-    predicted_sarcasm=False,
-    sarcasm_feedback=None,
-    comment="Pretty accurate",
-    language_code="en",
-)
-print(feedback)
-client.close()
+with EmotionwiseClient(api_key="YOUR_API_KEY") as client:
+    feedback = client.submit_feedback(
+        text="I am happy but a bit nervous",
+        predicted_emotions=["joy", "nervousness"],
+        suggested_emotions=["optimism"],
+        predicted_sarcasm=False,
+        comment="Pretty accurate",
+        language_code="en",
+    )
+    print(feedback)
 ```
 
 ## Error Handling
