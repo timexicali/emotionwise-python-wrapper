@@ -4,9 +4,9 @@ import pytest
 from emotionwise import EmotionwiseAPIError, EmotionwiseAuthError, EmotionwiseClient
 
 
-def test_rejects_dual_auth() -> None:
+def test_rejects_missing_api_key() -> None:
     with pytest.raises(EmotionwiseAuthError):
-        EmotionwiseClient(api_key="k", jwt_token="t")
+        EmotionwiseClient()
 
 
 def test_api_key_header_is_sent() -> None:
@@ -21,14 +21,14 @@ def test_api_key_header_is_sent() -> None:
         assert resp["ok"] is True
 
 
-def test_bearer_header_is_sent() -> None:
+def test_feedback_uses_api_key_header() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.headers["authorization"] == "Bearer jwt-token"
+        assert request.headers["x-api-key"] == "test-key"
         return httpx.Response(200, json={"ok": True})
 
     transport = httpx.MockTransport(handler)
     with httpx.Client(transport=transport) as http_client:
-        client = EmotionwiseClient(jwt_token="jwt-token", client=http_client)
+        client = EmotionwiseClient(api_key="test-key", client=http_client)
         resp = client.submit_feedback(prediction_id="123", vote="up")
         assert resp["ok"] is True
 

@@ -1,9 +1,8 @@
 # emotionwise-python
 
-Python wrapper for the `emotionwise.ai` API with dual authentication support:
+Python wrapper for the `emotionwise.ai` API using `X-API-Key` authentication.
 
 - `X-API-Key` for external integrations.
-- `Authorization: Bearer <jwt>` for web/session flows.
 
 ## Install
 
@@ -17,7 +16,7 @@ pip install -e .
 from emotionwise import EmotionwiseClient
 
 client = EmotionwiseClient(
-    api_key="ew_live_xxx",  # or jwt_token="..."
+    api_key="ew_live_xxx",
 )
 
 result = client.analyze(

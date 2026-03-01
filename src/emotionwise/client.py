@@ -13,26 +13,18 @@ class EmotionwiseClient:
         *,
         base_url: str = "https://api.emotionwise.ai",
         api_key: str | None = None,
-        jwt_token: str | None = None,
         timeout: float = 15.0,
         client: httpx.Client | None = None,
     ) -> None:
-        if api_key and jwt_token:
-            raise EmotionwiseAuthError(
-                "Provide either api_key or jwt_token, not both."
-            )
+        if not api_key:
+            raise EmotionwiseAuthError("api_key is required.")
         self.api_key = api_key
-        self.jwt_token = jwt_token
         self.base_url = base_url.rstrip("/")
         self._client = client or httpx.Client(timeout=timeout)
         self._owns_client = client is None
 
     def _build_headers(self, headers: dict[str, str] | None = None) -> dict[str, str]:
-        final_headers = {"Accept": "application/json"}
-        if self.api_key:
-            final_headers["X-API-Key"] = self.api_key
-        if self.jwt_token:
-            final_headers["Authorization"] = f"Bearer {self.jwt_token}"
+        final_headers = {"Accept": "application/json", "X-API-Key": self.api_key}
         if headers:
             final_headers.update(headers)
         return final_headers
